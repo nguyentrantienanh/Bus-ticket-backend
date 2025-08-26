@@ -241,7 +241,8 @@ router.post("/users/:userId/chats", async (req, res) => {
       priority,
       status: 2,
       lastMessage: "",
-      messages: []
+      messages: [],
+      timestamp: new Date().toLocaleString()
     };
 
     user.chats.push(newChat);

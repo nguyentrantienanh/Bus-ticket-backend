@@ -7,7 +7,7 @@ const chatSchema = new mongoose.Schema({
   lastMessage: { type: String, default: "" },
   status: { type: Number, default: 2 },
   priority: { type: Number, default: 1 },
-  timestamp: { type: String, default: () => new Date().toLocaleString() },
+  timestamp: { type: String, required: true },
   messages: [messageSchema]
 });
 
