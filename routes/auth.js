@@ -338,6 +338,7 @@ router.post("/admin/chats/:chatId/messages", async (req, res) => {
     };
     chat.messages.push(newMessage);
     chat.lastMessage = text;
+    chat.status = 1;  
     await user.save();
 
     res.json(newMessage);
