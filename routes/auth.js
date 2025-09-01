@@ -150,23 +150,16 @@ router.get("/users", async (req, res) => {
   }
 });
  
-// Cập nhật thông tin user theo id
-// và thêm thông tin (const [formData, setFormData] = useState({
-//   fullName: '',
-//   phone: '',
-//   email: '',
-//   cccd: '',
-//   birthday: `${currentYear}-01-01`
-// })
-   
  
+   
+// Cập nhật user theo id  không cập nhật mật khẩu và chats và ticket
 router.put("/users/:id", async (req, res) => {
   try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const updatedData = { ...req.body };
+    delete updatedData.password;
+    delete updatedData.chats;
+    delete updatedData.ticket;
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, updatedData, { new: true });
     if (!updatedUser) return res.status(404).json({ message: "Không tìm thấy user" });
     res.json({ message: "Cập nhật user thành công", user: updatedUser });
   } catch (err) {
@@ -193,40 +186,45 @@ router.get("/users/:id", async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 });
+router.put("/users/:id/change-password", async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!newPassword) {
+    return res.status(400).json({ message: "Vui lòng nhập mật khẩu mới" });
+  }
+
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
+
+    // Nếu user đã có password hash
+    if (user.password && user.password.startsWith("$2")) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: "Vui lòng nhập mật khẩu hiện tại" });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) return res.status(400).json({ message: "Mật khẩu hiện tại không đúng" });
+
+      // Check newPassword trùng currentPassword
+      if (currentPassword === newPassword) {
+        return res.status(400).json({ message: "Mật khẩu mới không được trùng mật khẩu cũ" });
+      }
+    }
+
+    // Hash mật khẩu mới và lưu
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+});
+
+
 
  
-// Tạo chat mới cho user
-// router.post("/users/:id/chats", async (req, res) => {
-//   try {
-//     const { id } = req.params; // userId lấy từ URL
-//     const { description, priority } = req.body;
-
-//     const user = await User.findById(id);
-//     if (!user) return res.status(404).json({ message: "Không tìm thấy user" });
-
-//     // Tạo chat mới
-//     const newChat = new Chat({
-//       userId: id,
-//       description,
-//       priority,
-//       status: 2,
-//       timestamp: new Date().toLocaleString(),
-//       messages: []
-//     });
-
-//     await newChat.save();
-
-//     // Gắn chat mới vào user.chats
-//     user.chats.push(newChat._id);
-//     await user.save();
-
-//     res.json({ message: "Tạo chat thành công", chat: newChat });
-//   } catch (err) {
-//     res.status(500).json({ message: "Lỗi server", error: err.message });
-//   }
-// });
-// Tạo chat mới cho user (lưu trực tiếp trong user.chats)
-// Tạo chat mới cho user (lưu trực tiếp trong user.chats)
 // POST /users/:userId/chats
 router.post("/users/:userId/chats", async (req, res) => {
   try {
