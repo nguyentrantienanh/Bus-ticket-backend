@@ -240,7 +240,7 @@ router.post("/users/:userId/chats", async (req, res) => {
       status: 2,
       lastMessage: "",
       messages: [],
-      timestamp: new Date().toLocaleString()
+      timestamp: Date.now()
     };
 
     user.chats.push(newChat);
@@ -303,7 +303,7 @@ router.post("/users/:userId/chats/:chatId/messages", async (req, res) => {
       id: sender === "user" ? 1 : 2,
       sender,
       text,
-     timestamp: Date.now()
+      timestamp: new Date().toLocaleString()
     };
 
     chat.messages.push(newMessage);
