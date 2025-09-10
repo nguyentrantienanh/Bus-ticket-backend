@@ -303,7 +303,7 @@ router.post("/users/:userId/chats/:chatId/messages", async (req, res) => {
       id: sender === "user" ? 1 : 2,
       sender,
       text,
-      timestamp: new Date().toLocaleString()
+     timestamp: Date.now()
     };
 
     chat.messages.push(newMessage);
